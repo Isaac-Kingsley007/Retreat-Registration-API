@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import db from './db';
 import { config } from "dotenv";
+import { internalError } from "./errorHandlers";
 
 config();
 
@@ -40,8 +41,7 @@ router.get('/getall', (_req: Request, res: Response) => {
 
         res.send(data);
     } catch(error){
-        console.log((error as any)?.message ?? error);
-        res.status(500).send("Internal Server Error");
+        internalError(res, error);
     }
 
 });
@@ -72,9 +72,54 @@ router.get('/getone/:id', (req: Request, res: Response) => {
         res.send(data);
         return;
     } catch(error){
-        console.log((error as any)?.message ?? error);
-        res.status(500).send("Internal Server Error");
+        internalError(res, error);
+    }
+
+});
+
+router.get('/getbyteamnumber/:team_number', (req: Request, res: Response) =>{
+    
+    const teamNumber = parseInt(req.params.team_number);
+
+    if(isNaN(teamNumber) || teamNumber < 1 || teamNumber > colors.length){
+        res.status(404).send("Not Found. Invalid Team Number Ig");
         return;
+    }
+
+    try{
+        const participants: Participant[] = db.prepare(
+            `select id, name, age, phone_number, ((id - 1) % ?) + 1 as team_number
+            from participant
+            where team_number = ?`
+        ).all(colors.length, teamNumber) as Participant[];
+        
+        res.send(participants);
+    } catch(error){
+        internalError(res, error);
+    }
+});
+
+router.get('/getbycolor/:color', (req: Request, res: Response) =>{
+
+    const color: string = req.params.color;
+
+    if(!colors.includes(color)){
+        res.status(404).send("Not Found. Not a Valid Color");
+        return;
+    }
+
+    const teamNumber = colors.indexOf(color) + 1;
+
+    try{
+        const participants: Participant[] = db.prepare(
+            `select id, name, age, phone_number, ((id - 1) % ?) + 1 as team_number
+            from participant
+            where team_number = ?`
+        ).all(colors.length, teamNumber) as Participant[];
+
+        res.send(participants);
+    } catch(error){
+        internalError(res, error);
     }
 
 });
@@ -104,8 +149,7 @@ router.post('/add', (req: Request, res: Response) => {
 
         res.send(`Registered ${name}. You are team ${colors[teamNumber]}!`)
     } catch(error: unknown){
-        console.log((error as any)?.message ?? error);
-        res.status(500).send("Internal Server Error");
+        internalError(res, error);
     }
 });
 
@@ -129,8 +173,7 @@ router.delete('/delete', (req: Request,res: Response) =>{
 
         res.send("Delete Successfull");
     } catch(error){
-        console.log((error as any)?.message ?? error);
-        res.status(500).send("Internal Server Error");
+        internalError(res, error);
     }
 
 });
