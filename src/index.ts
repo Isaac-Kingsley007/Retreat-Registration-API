@@ -10,12 +10,12 @@ const port = parseInt(process.env.PORT ?? '3000');
 
 app.use(express.json());
 app.use(express.urlencoded({extended:false}));
-app.use(logger('tiny'));
+app.use(logger('dev'));
 
 app.use('/api', router);
 
 app.get('/', (_req, res) => {
-    res.status(404).send("App is active at <a href='/api'>/api</a> please me requests there");
+    res.status(404).send("App is active at <a href='/api'>/api</a> please make requests there");
 });
 
 app.listen(port, () => {

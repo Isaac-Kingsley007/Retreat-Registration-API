@@ -5,7 +5,7 @@ import { config } from "dotenv";
 config();
 
 interface Participant{
-    id: number,
+    id?: number,
     name: string,
     age: number,
     phone_number: string,
@@ -51,7 +51,7 @@ router.get('/getone/:id', (req: Request, res: Response) => {
     const id = parseInt(req.params.id);
 
     if(isNaN(id)){
-        res.status(404).send("Not Found");
+        res.status(404).send("Not Found. id should be an Integer");
         return;
     }
 
@@ -81,7 +81,7 @@ router.get('/getone/:id', (req: Request, res: Response) => {
 
 router.post('/add', (req: Request, res: Response) => {
 
-    const {name, age, phone_number}:{name: string, age: number, phone_number: string} = req.body;
+    const {name, age, phone_number}: Participant = req.body;
 
     if(!(name && Number.isInteger(age) && phone_number)){
         res.status(400).send("'name', 'age', 'phone_number' is required and age should be an Integer");
@@ -102,14 +102,14 @@ router.post('/add', (req: Request, res: Response) => {
 
         const teamNumber = (Number(rowId) - 1) % colors.length;
 
-        res.send(`registered ${name} you are team ${colors[teamNumber]}`)
+        res.send(`Registered ${name}. You are team ${colors[teamNumber]}!`)
     } catch(error: unknown){
         console.log((error as any)?.message ?? error);
         res.status(500).send("Internal Server Error");
     }
 });
 
-router.delete('/delete', (req,res) =>{
+router.delete('/delete', (req: Request,res: Response) =>{
 
     const password: string = req.body.password;
 
